@@ -13,7 +13,6 @@ import org.brinst.couponcore.model.CouponType;
 import org.brinst.couponcore.reopsitory.mysql.CouponIssueJpaRepository;
 import org.brinst.couponcore.reopsitory.mysql.CouponIssueRepository;
 import org.brinst.couponcore.reopsitory.mysql.CouponJpaRepository;
-import org.hibernate.query.sqm.mutation.internal.cte.CteInsertStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,7 +68,7 @@ class CouponIssueServiceTest extends TestConfig {
 	    //given
 	    long userId = 1;
 		Coupon coupon = Coupon.builder()
-			.couponType(CouponType.FIRST_COM_FIRST_SERVED)
+			.couponType(CouponType.FIRST_COME_FIRST_SERVED)
 			.title("선착순 테스트 쿠폰")
 			.totalQuantity(100)
 			.issuedQuantity(0)
@@ -85,5 +84,83 @@ class CouponIssueServiceTest extends TestConfig {
 
 		CouponIssue couponIssueResult = couponIssueRepository.findFirstCouponIssue(coupon.getId(), userId);
 		assertNotNull(couponIssueResult);
+	}
+
+	@Test
+	@DisplayName("발급 수량이 문제가 있다면 예외를 반환한다.")
+	void issue_2() {
+		//given
+		long userId = 1;
+		Coupon coupon = Coupon.builder()
+			.couponType(CouponType.FIRST_COME_FIRST_SERVED)
+			.title("선착순 테스트 쿠폰")
+			.totalQuantity(100)
+			.issuedQuantity(100)
+			.dateIssueStart(LocalDateTime.now().minusDays(1L))
+			.dateIssueEnd(LocalDateTime.now().plusDays(1L))
+			.build();
+		couponJpaRepository.save(coupon);
+		//when & then
+		CouponIssueException exception = assertThrows(CouponIssueException.class,
+			() -> sut.issue(coupon.getId(), userId));
+		Assertions.assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COUPON_ISSUE_QUANTITY);
+	}
+
+	@Test
+	@DisplayName("발급 기낳넹 문제가 있다면 예외를 반환한다.")
+	void issue_3() {
+		//given
+		long userId = 1;
+		Coupon coupon = Coupon.builder()
+			.couponType(CouponType.FIRST_COME_FIRST_SERVED)
+			.title("선착순 테스트 쿠폰")
+			.totalQuantity(100)
+			.issuedQuantity(0)
+			.dateIssueStart(LocalDateTime.now().minusDays(2L))
+			.dateIssueEnd(LocalDateTime.now().minusDays(1L))
+			.build();
+		couponJpaRepository.save(coupon);
+		//when & then
+		CouponIssueException exception = assertThrows(CouponIssueException.class,
+			() -> sut.issue(coupon.getId(), userId));
+		Assertions.assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COUPON_ISSUE_DATE);
+	}
+
+	@Test
+	@DisplayName("중복 발급 검증에 문제가 있다면 예외를 반환한다.")
+	void issue_4() {
+		//given
+		long userId = 1;
+		Coupon coupon = Coupon.builder()
+			.couponType(CouponType.FIRST_COME_FIRST_SERVED)
+			.title("선착순 테스트 쿠폰")
+			.totalQuantity(100)
+			.issuedQuantity(0)
+			.dateIssueStart(LocalDateTime.now().minusDays(2L))
+			.dateIssueEnd(LocalDateTime.now().plusDays(1L))
+			.build();
+		couponJpaRepository.save(coupon);
+
+		CouponIssue couponIssue = CouponIssue.builder()
+			.couponId(coupon.getId())
+			.userId(userId)
+			.build();
+		couponIssueJpaRepository.save(couponIssue);
+		//when & then
+		CouponIssueException exception = assertThrows(CouponIssueException.class,
+			() -> sut.issue(coupon.getId(), userId));
+		Assertions.assertEquals(exception.getErrorCode(), ErrorCode.DUPLICATED_COUPON_ISSUE);
+	}
+
+	@Test
+	@DisplayName("쿠폰이 존재하지 않는다면 예외를 반환한다.")
+	void issue_5() {
+		//given
+		long userId = 1;
+
+		//when & then
+		CouponIssueException exception = assertThrows(CouponIssueException.class,
+			() -> sut.issue(1L, userId));
+		Assertions.assertEquals(exception.getErrorCode(), ErrorCode.COUPON_NOT_EXIST);
 	}
 }

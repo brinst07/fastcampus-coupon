@@ -1,0 +1,8 @@
+### 쿠폰 등록 api 테스트
+POST http://127.0.0.1:8080/v1/issue
+Content-Type: application/json
+
+{
+  "userId" : 2,
+  "couponId": 1
+}
