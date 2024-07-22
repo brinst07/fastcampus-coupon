@@ -15,7 +15,9 @@ public class CouponIssueRequestService {
 	private final CouponIssueService couponIssueService;
 
 	public void issueRequestV1(CouponIssueRequestDTO requestDTO) {
-		couponIssueService.issue(requestDTO.couponId(), requestDTO.userId());
+		synchronized (this) {
+			couponIssueService.issue(requestDTO.couponId(), requestDTO.userId());
+		}
 		log.info("쿠폰 발급 완료. couponId: %s, userId %s".formatted(requestDTO.couponId(), requestDTO.userId()));
 	}
 }

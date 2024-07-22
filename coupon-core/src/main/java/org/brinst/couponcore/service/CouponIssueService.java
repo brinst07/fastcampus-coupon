@@ -3,7 +3,6 @@ package org.brinst.couponcore.service;
 import static org.brinst.couponcore.exception.ErrorCode.*;
 
 import org.brinst.couponcore.exception.CouponIssueException;
-import org.brinst.couponcore.exception.ErrorCode;
 import org.brinst.couponcore.model.Coupon;
 import org.brinst.couponcore.model.CouponIssue;
 import org.brinst.couponcore.reopsitory.mysql.CouponIssueJpaRepository;
