@@ -27,3 +27,16 @@
     ```
     다음과 같은 로직으로 처리되기에 lock을 반납하게 되면 다른 스레드가 접근하게 되고, 동시성 이슈를 해결 할 수 없다.
     따라서 Transaction안에 lock을 거는 행위를 지양해야한다.
+### Redis 동시성 이슈 해결 방법
+- Redisson
+  - lock Name을 지정하여 해당 이름으로 lock을 거는 형태
+  - RPS가 300정도로 낮게 나옴
+### Mysql 동시성 이슈 해결 방법
+- record lock
+  - select * from table **for update** 를 사용
+  - 먼저 시작한 record lock이 해제되기 전까지 조회가 되지 않음
+  - @Lock(LockModeType.PESSIMISTIC_WRITE)
+  - Redis로 lock을 걸었을 때보다 성능이 3배 정도 좋았음.
+
+## 참고
+[레디스 구조](REDIS_DATA_STRUCTURE.md)

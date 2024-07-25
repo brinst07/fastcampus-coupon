@@ -17,9 +17,9 @@ public class CouponIssueRequestService {
 	private final DistributeLockExcutor distributeLockExcutor;
 
 	public void issueRequestV1(CouponIssueRequestDTO requestDTO) {
-		distributeLockExcutor.execute("lock_" + requestDTO.couponId(), 10000, 10000, () -> {
-			couponIssueService.issue(requestDTO.couponId(), requestDTO.userId());
-		});
+		// distributeLockExcutor.execute("lock_" + requestDTO.couponId(), 10000, 10000, () -> {
+		couponIssueService.issue(requestDTO.couponId(), requestDTO.userId());
+		// });
 		log.info("쿠폰 발급 완료. couponId: %s, userId %s".formatted(requestDTO.couponId(), requestDTO.userId()));
 	}
 }
